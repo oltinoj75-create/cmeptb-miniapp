@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>𒀱ℂ𝕄𝔼ℙ𝕋𝕓𒀱</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#080b18;--panel:#15172a;--muted:#9aa3c7;--purple:#9b55ff;--blue:#138cff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0,#282052 0,#080b18 42%);color:#fff;font:15px system-ui}
+header{padding:18px 16px 12px;position:sticky;top:0;background:#0b0e1ddd;backdrop-filter:blur(12px);z-index:3}
+.brand{font-weight:900;font-size:21px;letter-spacing:.5px}.sub{color:var(--muted);font-size:12px;margin-top:3px}
+.tabs{display:flex;gap:8px;padding:10px 14px;overflow:auto;position:sticky;top:68px;background:#0b0e1dee;z-index:2}
+.tab{border:1px solid #33385c;background:#171a30;color:white;border-radius:20px;padding:9px 13px;white-space:nowrap}
+.tab.active{background:linear-gradient(90deg,var(--purple),var(--blue));border:0}
+main{padding:12px 14px 92px}.hero{background:linear-gradient(120deg,#47228a,#073c7b);border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 10px 30px #0008}
+.hero h2{margin:0 0 6px;font-size:19px}.hero p{margin:0;color:#e2e5ff;font-size:13px}
+.section{font-weight:800;margin:17px 2px 10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{background:linear-gradient(145deg,#1b1e35,#111426);border:1px solid #292d4c;border-radius:16px;padding:13px;min-height:142px;display:flex;flex-direction:column}
+.emoji{font-size:27px}.name{font-weight:800;margin:7px 0 4px}.desc{font-size:12px;color:var(--muted);line-height:1.35;flex:1}
+.price{font-weight:900;margin-top:10px}.buy{border:0;border-radius:12px;padding:10px;color:white;font-weight:800;background:linear-gradient(90deg,var(--purple),var(--blue));margin-top:9px}
+select,input{width:100%;background:#171a30;color:white;border:1px solid #34395c;border-radius:12px;padding:12px;margin:6px 0}
+.bottom{position:fixed;bottom:0;left:0;right:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#101326ed;display:flex;gap:8px;justify-content:space-around;border-top:1px solid #34395c;z-index:4}
+.bottom button{background:transparent;color:#dfe4ff;border:0;font-size:12px;padding:7px}
+.empty{color:var(--muted);padding:22px;text-align:center}.notice{color:#ffd98c;font-size:12px;margin-top:10px}
+</style>
+</head>
+<body>
+<header><div class="brand">𒀱ℂ𝕄𝔼ℙ𝕋𝕓𒀱</div><div class="sub">Minecraft PE / BE • Stars shop</div></header>
+<div class="tabs">
+<button class="tab active" data-page="shop">🎮 Магазин</button>
+<button class="tab" data-page="cases">🎁 Кейсы</button>
+<button class="tab" data-page="profile">👤 Профиль</button>
+</div>
+<main id="app"><div class="empty">Загрузка магазина…</div></main>
+<nav class="bottom">
+<button data-page="shop">⌂<br>Главная</button><button data-page="shop">🎮<br>Сервера</button>
+<button data-page="cases">🎁<br>Кейсы</button><button data-page="profile">☻<br>Профиль</button>
+</nav>
+<script>
+const tg=window.Telegram?.WebApp; tg?.ready(); tg?.expand();
+const app=document.getElementById('app'); let catalog=null,page='shop',server='minepe';
+const headers={'Content-Type':'application/json','X-Telegram-Init-Data':tg?.initData||''};
+async function load(){try{let r=await fetch('/api/catalog',{headers});if(!r.ok)throw Error('Открой мини-приложение через кнопку в Telegram-боте.');catalog=await r.json();render()}catch(e){app.innerHTML=`<div class="empty">${e.message}</div>`}}
+function render(){
+ document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+ if(!catalog.user.country || catalog.user.country==='OTHER'){
+   app.innerHTML=`<div class="hero"><h2>🌍 Выбери страну</h2><p>Выбор нужен для правильной валюты и языка. Его можно изменить в профиле.</p></div>
+   <select id="firstCountry"><option value="UZ|UZS">🇺🇿 Узбекистан — сум</option><option value="KZ|KZT">🇰🇿 Казахстан — тенге</option><option value="RU|RUB">🇷🇺 Россия — рубли</option><option value="OTHER|USD">🌍 Другая страна</option></select>
+   <select id="firstLanguage"><option value="uz">O‘zbekcha</option><option value="ru" selected>Русский</option><option value="kk">Қазақша</option><option value="en">English</option></select>
+   <button class="buy" onclick="saveFirstChoice()">Продолжить</button>`;return;
+ }
+ if(page==='profile'){app.innerHTML=`<div class="hero"><h2>👤 Профиль</h2><p>${catalog.user.name||'Игрок'}<br>ID: ${catalog.user.id}</p></div>
+ <div class="section">🌍 Страна и валюта</div><select id="country"><option value="UZ|UZS">🇺🇿 Узбекистан — UZS</option><option value="KZ|KZT">🇰🇿 Казахстан — KZT</option><option value="RU|RUB">🇷🇺 Россия — RUB</option><option value="OTHER|USD">🌍 Другая страна — USD</option></select>
+ <div class="section">🌐 Язык</div><select id="language"><option value="ru">Русский</option><option value="uz">O‘zbekcha</option><option value="kk">Қазақша</option><option value="en">English</option></select>
+ <button class="buy" onclick="saveProfile()">Сохранить</button>`;return}
+ const selected=catalog.servers.find(s=>s.key===server)||catalog.servers[0];
+ const serverPicker=`<div class="section">Выбери сервер</div><select id="server" onchange="server=this.value;render()">${catalog.servers.map(s=>`<option value="${s.key}" ${s.key===server?'selected':''}>${s.name}</option>`).join('')}</select>`;
+ const list=catalog.products.filter(p=>p.server_key===server&&(page==='cases'?p.kind==='case':p.kind==='rank'));
+ app.innerHTML=`<div class="hero"><h2>${page==='cases'?'🎁 Кейсы':'🎮 Донаты серверов'}</h2><p>Покупка за Telegram Stars. Выбирай сервер и товар.</p></div>${serverPicker}<div class="section">${selected.name} • ${page==='cases'?'Кейсы':'Донаты'}</div><div class="grid">${list.map(p=>`<article class="card"><div class="emoji">${p.kind==='case'?'🎁':'👑'}</div><div class="name">${esc(p.title)}</div><div class="desc">${esc(p.description)}</div><div class="price">${p.price} ⭐</div><button class="buy" onclick="buy(${p.id})">Купить за ${p.price} ⭐</button></article>`).join('')}</div>${list.length?'':'<div class="empty">Пока нет товаров в этом разделе.</div>'}<div class="notice">Демо-каталог: владелец должен заменить примеры на проверенные товары и цены серверов. Кейсы здесь — фиксированные наборы, не случайная платная выдача.</div>`;
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function buy(id){try{let r=await fetch('/api/invoice',{method:'POST',headers,body:JSON.stringify({product_id:id})});let d=await r.json();if(!r.ok)throw Error(d.error||d.details?.description||'Не удалось создать счёт');if(tg?.openInvoice)tg.openInvoice(d.invoice_url,()=>{});else location.href=d.invoice_url}catch(e){tg?.showAlert(e.message)||alert(e.message)}}
+async function saveProfile(){let [country,currency]=document.getElementById('country').value.split('|');let language=document.getElementById('language').value;let r=await fetch('/api/profile',{method:'POST',headers,body:JSON.stringify({country,currency,language})});if(r.ok){catalog.user.country=country;catalog.user.language=language;catalog.user.currency=currency;tg?.showAlert('Сохранено');}else tg?.showAlert('Ошибка сохранения')}
+async function saveFirstChoice(){let [country,currency]=document.getElementById('firstCountry').value.split('|');let language=document.getElementById('firstLanguage').value;let r=await fetch('/api/profile',{method:'POST',headers,body:JSON.stringify({country,currency,language})});if(r.ok){catalog.user.country=country;catalog.user.language=language;catalog.user.currency=currency;page='shop';render()}else tg?.showAlert('Ошибка сохранения')}
+document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{page=b.dataset.page;render()}));
+load();
+</script>
+</body></html>
